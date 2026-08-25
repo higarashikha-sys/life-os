@@ -14,13 +14,13 @@
   });
   if(changed)write(s);
 
-  function label(v){return v==='out'?'外出時':'家にいる時'}
+  function label(v){return v==='out'?'外出時':'在宅時'}
 
   function patchSelect(id){
     const el=document.getElementById(id);
     if(!el||el.dataset.lifeosContext==='1')return;
     const current=el.value;
-    el.innerHTML='<option value="home">家にいる時</option><option value="out">外出時</option>';
+    el.innerHTML='<option value="home">在宅時</option><option value="out">外出時</option>';
     el.value=(current==='out')?'out':'home';
     el.dataset.lifeosContext='1';
   }
