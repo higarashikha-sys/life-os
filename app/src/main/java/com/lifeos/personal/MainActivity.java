@@ -45,8 +45,6 @@ public class MainActivity extends Activity {
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
 
-        // JavaScript の alert/confirm を Android WebView 上で正しく表示する。
-        // Life / Works の削除確認は confirm() を使用しているため必須。
         webView.setWebChromeClient(new WebChromeClient());
 
         webView.setWebViewClient(new WebViewClient() {
@@ -56,6 +54,7 @@ public class MainActivity extends Activity {
                 injectAsset(view, "inbox_delete.js", "Inbox削除機能の読み込みに失敗しました");
                 injectAsset(view, "today_due_highlight.js", "期限強調表示の読み込みに失敗しました");
                 injectAsset(view, "habit_target_patch.js", "習慣頻度設定の読み込みに失敗しました");
+                injectAsset(view, "today_sort.js", "Today並び替え機能の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
