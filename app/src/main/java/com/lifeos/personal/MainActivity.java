@@ -1,6 +1,7 @@
 package com.lifeos.personal;
 
 import android.app.Activity;
+import android.app.backup.BackupManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -67,6 +68,10 @@ public class MainActivity extends Activity {
         return getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
     }
 
+    private void signalBackupChanged() {
+        try { new BackupManager(this).dataChanged(); } catch (Exception ignored) {}
+    }
+
     public class AndroidBridge {
         @JavascriptInterface public void toast(final String message) {
             runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
@@ -79,6 +84,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void saveStateJson(final String json) {
             if (json == null || json.trim().isEmpty()) return;
             statePrefs().edit().putString(PREFS_STATE_KEY, json).apply();
+            signalBackupChanged();
         }
 
         @JavascriptInterface public void exportBackup(final String json) { runOnUiThread(() -> {
@@ -145,6 +151,7 @@ public class MainActivity extends Activity {
                 while ((n = in.read(tmp)) > 0) buffer.write(tmp, 0, n);
                 String json = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
                 statePrefs().edit().putString(PREFS_STATE_KEY, json).apply();
+                signalBackupChanged();
                 String b64 = Base64.encodeToString(json.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
                 webView.evaluateJavascript("window.receiveImportedBackupBase64('" + b64 + "')", null);
             } catch (Exception e) {
