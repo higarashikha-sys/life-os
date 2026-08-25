@@ -36,20 +36,25 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                try (InputStream in = getAssets().open("ai_export.js")) {
-                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                    byte[] tmp = new byte[8192];
-                    int n;
-                    while ((n = in.read(tmp)) > 0) buffer.write(tmp, 0, n);
-                    String script = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
-                    view.evaluateJavascript(script, null);
-                } catch (Exception e) {
-                    Toast.makeText(MainActivity.this, "AI出力機能の読み込みに失敗しました", Toast.LENGTH_LONG).show();
-                }
+                loadAssetScript(view, "ai_export.js", "AI出力機能の読み込みに失敗しました");
+                loadAssetScript(view, "ui_patch.js", "UI追加機能の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/index.html");
+    }
+
+    private void loadAssetScript(WebView view, String assetName, String errorMessage) {
+        try (InputStream in = getAssets().open(assetName)) {
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            byte[] tmp = new byte[8192];
+            int n;
+            while ((n = in.read(tmp)) > 0) buffer.write(tmp, 0, n);
+            String script = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+            view.evaluateJavascript(script, null);
+        } catch (Exception e) {
+            Toast.makeText(MainActivity.this, errorMessage, Toast.LENGTH_LONG).show();
+        }
     }
 
     public class AndroidBridge {
