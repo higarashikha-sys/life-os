@@ -54,6 +54,7 @@ public class MainActivity extends Activity {
                 super.onPageFinished(view, url);
                 injectAsset(view, "native_state_patch.js", "履歴保存機能の読み込みに失敗しました");
                 injectAsset(view, "inbox_delete.js", "Inbox削除機能の読み込みに失敗しました");
+                injectAsset(view, "today_due_highlight.js", "期限強調表示の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
