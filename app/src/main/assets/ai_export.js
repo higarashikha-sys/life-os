@@ -6,9 +6,10 @@
   const localDate=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   const today=()=>localDate(new Date());
   const isoDay=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?String(v||'').slice(0,10):localDate(d)};
-  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function readState(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
   function rangeStart(days){if(days==='all')return '0000-01-01';const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(+days-1));return localDate(d)}
+  function placeLabel(v){return v==='out'?'外出時':'家にいる時'}
+
   function buildMarkdown(days){
     const S=readState(),from=rangeStart(days),to=today();
     const tasks=(S.tasks||[]).filter(t=>{const d=isoDay(t.doneAt||t.createdAt);return d>=from&&d<=to});
@@ -44,18 +45,19 @@
     habits.forEach(h=>{out.push(`### ${h.name}`);out.push(`- 週目標: ${h.target||0}回`);out.push(`- 実行日: ${h.dates.length?h.dates.join(', '):'なし'}`);out.push(`- 期間内実行回数: ${h.dates.length}`);out.push('')});
     out.push('## Tasks');
     if(!tasks.length)out.push('_No tasks._');
-    tasks.sort((a,b)=>isoDay(a.createdAt).localeCompare(isoDay(b.createdAt))).forEach(t=>{out.push(`- [${t.done?'x':' '}] ${t.text}`);out.push(`  - created: ${isoDay(t.createdAt)}`);if(t.doneAt)out.push(`  - completed: ${isoDay(t.doneAt)}`);if(t.minutes)out.push(`  - minutes: ${t.minutes}`);if(t.focus)out.push(`  - focus: ${t.focus}`);if(t.category)out.push(`  - category: ${t.category}`);if(t.due)out.push(`  - due: ${t.due}`)});
+    tasks.sort((a,b)=>isoDay(a.createdAt).localeCompare(isoDay(b.createdAt))).forEach(t=>{out.push(`- [${t.done?'x':' '}] ${t.text}`);out.push(`  - created: ${isoDay(t.createdAt)}`);if(t.doneAt)out.push(`  - completed: ${isoDay(t.doneAt)}`);if(t.minutes)out.push(`  - minutes: ${t.minutes}`);out.push(`  - place: ${placeLabel(t.focus)}`);if(t.category)out.push(`  - category: ${t.category}`);if(t.due)out.push(`  - due: ${t.due}`)});
     out.push('');
     out.push('## Inbox');
     if(!inbox.length)out.push('_Empty._');else inbox.forEach(x=>out.push(`- ${x}`));
     out.push('');
     return out.join('\n');
   }
+
   function attach(){
     const panel=document.querySelector('[data-p="settings"]');
     if(!panel||panel.querySelector('#aiExportBox'))return;
     const box=document.createElement('div');box.id='aiExportBox';box.className='card';box.style.marginTop='12px';
-    box.innerHTML=`<h2>ChatGPT用エクスポート</h2><p class="muted">生活履歴をMarkdownにまとめます。ファイルをChatGPTへ添付して分析に使えます。</p><div class="row"><select id="aiRange"><option value="7">直近7日</option><option value="30" selected>直近30日</option><option value="90">直近90日</option><option value="all">全期間</option></select><button id="aiExport" class="primary">Markdownを書き出す</button></div><div class="item"><b>含まれる内容</b><div class="muted">Diary全文、Worksの思考履歴と作業時間、Lifeの習慣実行日、Taskの完了/未完了・所要時間・集中度・期限、Inbox。</div></div>`;
+    box.innerHTML=`<h2>ChatGPT用エクスポート</h2><p class="muted">生活履歴をMarkdownにまとめます。ファイルをChatGPTへ添付して分析に使えます。</p><div class="row"><select id="aiRange"><option value="7">直近7日</option><option value="30" selected>直近30日</option><option value="90">直近90日</option><option value="all">全期間</option></select><button id="aiExport" class="primary">Markdownを書き出す</button></div><div class="item"><b>含まれる内容</b><div class="muted">Diary全文、Worksの思考履歴と作業時間、Lifeの習慣実行日、Taskの完了/未完了・所要時間・家/外出・期限、Inbox。</div></div>`;
     panel.appendChild(box);
     box.querySelector('#aiExport').addEventListener('click',()=>{const text=buildMarkdown(box.querySelector('#aiRange').value);if(window.AndroidBridge?.exportForAI)AndroidBridge.exportForAI(text);else alert('この機能はAPK版で利用できます。')});
   }
