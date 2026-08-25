@@ -2,6 +2,7 @@ package com.lifeos.personal;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Base64;
@@ -23,6 +24,9 @@ public class MainActivity extends Activity {
     private static final int REQ_EXPORT = 2001;
     private static final int REQ_IMPORT = 2002;
     private static final int REQ_EXPORT_AI = 2003;
+    private static final String PREFS_NAME = "lifeos_state";
+    private static final String PREFS_STATE_KEY = "state_json";
+
     private WebView webView;
     private String pendingExportJson;
     private String pendingAiExportText;
@@ -36,15 +40,17 @@ public class MainActivity extends Activity {
         webView.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                loadAssetScript(view, "ai_export.js", "AI出力機能の読み込みに失敗しました");
-                loadAssetScript(view, "ui_patch.js", "UI追加機能の読み込みに失敗しました");
+                injectAsset(view, "native_state_patch.js", "履歴保存機能の読み込みに失敗しました");
+                injectAsset(view, "ai_export.js", "AI出力機能の読み込みに失敗しました");
+                injectAsset(view, "ui_patch.js", "UI調整機能の読み込みに失敗しました");
+                injectAsset(view, "context_patch.js", "場所設定機能の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/index.html");
     }
 
-    private void loadAssetScript(WebView view, String assetName, String errorMessage) {
+    private void injectAsset(WebView view, String assetName, String errorMessage) {
         try (InputStream in = getAssets().open(assetName)) {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             byte[] tmp = new byte[8192];
@@ -57,8 +63,23 @@ public class MainActivity extends Activity {
         }
     }
 
+    private SharedPreferences statePrefs() {
+        return getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+    }
+
     public class AndroidBridge {
-        @JavascriptInterface public void toast(final String message) { runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show()); }
+        @JavascriptInterface public void toast(final String message) {
+            runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
+        }
+
+        @JavascriptInterface public String getStateJson() {
+            return statePrefs().getString(PREFS_STATE_KEY, "");
+        }
+
+        @JavascriptInterface public void saveStateJson(final String json) {
+            if (json == null || json.trim().isEmpty()) return;
+            statePrefs().edit().putString(PREFS_STATE_KEY, json).apply();
+        }
 
         @JavascriptInterface public void exportBackup(final String json) { runOnUiThread(() -> {
             pendingExportJson = json;
@@ -122,7 +143,9 @@ public class MainActivity extends Activity {
                 byte[] tmp = new byte[8192];
                 int n;
                 while ((n = in.read(tmp)) > 0) buffer.write(tmp, 0, n);
-                String b64 = Base64.encodeToString(buffer.toByteArray(), Base64.NO_WRAP);
+                String json = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+                statePrefs().edit().putString(PREFS_STATE_KEY, json).apply();
+                String b64 = Base64.encodeToString(json.getBytes(StandardCharsets.UTF_8), Base64.NO_WRAP);
                 webView.evaluateJavascript("window.receiveImportedBackupBase64('" + b64 + "')", null);
             } catch (Exception e) {
                 Toast.makeText(this, "読み込みに失敗しました", Toast.LENGTH_LONG).show();
