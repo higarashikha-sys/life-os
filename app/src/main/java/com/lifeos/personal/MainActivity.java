@@ -33,7 +33,21 @@ public class MainActivity extends Activity {
         WebSettings settings = webView.getSettings();
         settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true);
         settings.setDatabaseEnabled(true); settings.setAllowFileAccess(true); settings.setAllowContentAccess(true);
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                try (InputStream in = getAssets().open("ai_export.js")) {
+                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                    byte[] tmp = new byte[8192];
+                    int n;
+                    while ((n = in.read(tmp)) > 0) buffer.write(tmp, 0, n);
+                    String script = new String(buffer.toByteArray(), StandardCharsets.UTF_8);
+                    view.evaluateJavascript(script, null);
+                } catch (Exception e) {
+                    Toast.makeText(MainActivity.this, "AI出力機能の読み込みに失敗しました", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
         webView.loadUrl("file:///android_asset/index.html");
     }
