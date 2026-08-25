@@ -8,7 +8,7 @@
   const isoDay=v=>{const d=new Date(v);return Number.isNaN(d.getTime())?String(v||'').slice(0,10):localDate(d)};
   function readState(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}}
   function rangeStart(days){if(days==='all')return '0000-01-01';const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(+days-1));return localDate(d)}
-  function placeLabel(v){return v==='out'?'外出時':'家にいる時'}
+  function placeLabel(v){return v==='out'?'外出時':'在宅時'}
 
   function buildMarkdown(days){
     const S=readState(),from=rangeStart(days),to=today();
@@ -57,7 +57,7 @@
     const panel=document.querySelector('[data-p="settings"]');
     if(!panel||panel.querySelector('#aiExportBox'))return;
     const box=document.createElement('div');box.id='aiExportBox';box.className='card';box.style.marginTop='12px';
-    box.innerHTML=`<h2>ChatGPT用エクスポート</h2><p class="muted">生活履歴をMarkdownにまとめます。ファイルをChatGPTへ添付して分析に使えます。</p><div class="row"><select id="aiRange"><option value="7">直近7日</option><option value="30" selected>直近30日</option><option value="90">直近90日</option><option value="all">全期間</option></select><button id="aiExport" class="primary">Markdownを書き出す</button></div><div class="item"><b>含まれる内容</b><div class="muted">Diary全文、Worksの思考履歴と作業時間、Lifeの習慣実行日、Taskの完了/未完了・所要時間・家/外出・期限、Inbox。</div></div>`;
+    box.innerHTML=`<h2>ChatGPT用エクスポート</h2><p class="muted">生活履歴をMarkdownにまとめます。ファイルをChatGPTへ添付して分析に使えます。</p><div class="row"><select id="aiRange"><option value="7">直近7日</option><option value="30" selected>直近30日</option><option value="90">直近90日</option><option value="all">全期間</option></select><button id="aiExport" class="primary">Markdownを書き出す</button></div><div class="item"><b>含まれる内容</b><div class="muted">Diary全文、Worksの思考履歴と作業時間、Lifeの習慣実行日、Taskの完了/未完了・所要時間・在宅/外出・期限、Inbox。</div></div>`;
     panel.appendChild(box);
     box.querySelector('#aiExport').addEventListener('click',()=>{const text=buildMarkdown(box.querySelector('#aiRange').value);if(window.AndroidBridge?.exportForAI)AndroidBridge.exportForAI(text);else alert('この機能はAPK版で利用できます。')});
   }
