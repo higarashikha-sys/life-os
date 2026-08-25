@@ -34,18 +34,20 @@ public class MainActivity extends Activity {
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        webView = new WebView(this); setContentView(webView);
+        webView = new WebView(this);
+        setContentView(webView);
+
         WebSettings settings = webView.getSettings();
-        settings.setJavaScriptEnabled(true); settings.setDomStorageEnabled(true);
-        settings.setDatabaseEnabled(true); settings.setAllowFileAccess(true); settings.setAllowContentAccess(true);
+        settings.setJavaScriptEnabled(true);
+        settings.setDomStorageEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setAllowFileAccess(true);
+        settings.setAllowContentAccess(true);
+
         webView.setWebViewClient(new WebViewClient() {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 injectAsset(view, "native_state_patch.js", "履歴保存機能の読み込みに失敗しました");
-                injectAsset(view, "ai_export.js", "AI出力機能の読み込みに失敗しました");
-                injectAsset(view, "ui_patch.js", "UI調整機能の読み込みに失敗しました");
-                injectAsset(view, "context_patch.js", "場所設定機能の読み込みに失敗しました");
-                injectAsset(view, "what_next.js", "今から何する？機能の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
