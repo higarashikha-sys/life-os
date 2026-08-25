@@ -45,6 +45,7 @@ public class MainActivity extends Activity {
                 injectAsset(view, "ai_export.js", "AI出力機能の読み込みに失敗しました");
                 injectAsset(view, "ui_patch.js", "UI調整機能の読み込みに失敗しました");
                 injectAsset(view, "context_patch.js", "場所設定機能の読み込みに失敗しました");
+                injectAsset(view, "what_next.js", "今から何する？機能の読み込みに失敗しました");
             }
         });
         webView.addJavascriptInterface(new AndroidBridge(), "AndroidBridge");
