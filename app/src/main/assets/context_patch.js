@@ -5,13 +5,12 @@
   const read=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){return{}}};
   const write=s=>localStorage.setItem(KEY,JSON.stringify(s));
 
-  // 旧「集中度」データは、未指定として家に寄せる。新規は home / out の2択。
   const s=read();
   let changed=false;
   (s.tasks||[]).forEach(t=>{
     if(t.focus==='home'||t.focus==='out')return;
-    if(!t.focus){t.focus='home';changed=true;return;}
-    if(['low','mid','high'].includes(t.focus)){t.focus='home';changed=true;}
+    t.focus='home';
+    changed=true;
   });
   if(changed)write(s);
 
@@ -26,14 +25,18 @@
     el.dataset.lifeosContext='1';
   }
 
+  function setBadge(item,value){
+    const pill=item?.querySelector('.taskmeta .pill:nth-child(2)');
+    const text=label(value);
+    if(pill&&pill.textContent!==text)pill.textContent=text;
+  }
+
   function patchTaskBadges(){
     const state=read();
     const pending=(state.tasks||[]).filter(t=>!t.done);
 
-    const todayItems=[...document.querySelectorAll('[data-p="today"] #tasks .item')];
-    todayItems.forEach((item,i)=>{
-      const t=pending[i],pill=item.querySelector('.taskmeta .pill:nth-child(2)');
-      if(t&&pill)pill.textContent=label(t.focus);
+    [...document.querySelectorAll('[data-p="today"] #tasks .item')].forEach((item,i)=>{
+      if(pending[i])setBadge(item,pending[i].focus);
     });
 
     const inboxPanel=document.querySelector('[data-p="inbox"]');
@@ -42,10 +45,8 @@
       const right=cards[1];
       if(right){
         const items=[...right.querySelectorAll('.item')];
-        items.slice(-pending.length).forEach((item,i)=>{
-          const t=pending[i],pill=item.querySelector('.taskmeta .pill:nth-child(2)');
-          if(t&&pill)pill.textContent=label(t.focus);
-        });
+        const taskItems=items.filter(item=>item.querySelector('.taskmeta'));
+        taskItems.forEach((item,i)=>{if(pending[i])setBadge(item,pending[i].focus)});
       }
     }
   }
@@ -56,7 +57,12 @@
     patchTaskBadges();
   }
 
-  const observer=new MutationObserver(()=>requestAnimationFrame(patch));
+  let scheduled=false;
+  const observer=new MutationObserver(()=>{
+    if(scheduled)return;
+    scheduled=true;
+    requestAnimationFrame(()=>{scheduled=false;patch()});
+  });
   observer.observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
   document.addEventListener('click',()=>setTimeout(patch,0),true);
   setTimeout(patch,0);
