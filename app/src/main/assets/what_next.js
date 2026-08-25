@@ -6,7 +6,7 @@
   const pad=n=>String(n).padStart(2,'0');
   const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`};
   const taskContext=t=>t.focus==='out'?'out':'home';
-  const label=v=>v==='out'?'外出時':'家にいる時';
+  const label=v=>v==='out'?'外出時':'在宅時';
 
   function scoreTask(t){
     const today=todayKey();
@@ -45,7 +45,7 @@
       <p class="muted">今いる場所と空き時間から、未完了タスクを1つに絞ります。</p>
       <div class="row">
         <select id="wnPlace" aria-label="今いる場所">
-          <option value="home">家にいる時</option>
+          <option value="home">在宅時</option>
           <option value="out">外出時</option>
         </select>
         <select id="wnMinutes" aria-label="空き時間">
