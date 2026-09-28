@@ -66,7 +66,7 @@ function fresh(){return{version:4,tasks:[],inbox:[],habits:[{id:uid(),name:'æœé
 function normalize(o){
   const s=o&&typeof o==='object'?o:fresh();
   s.version=4;s.tasks=Array.isArray(s.tasks)?s.tasks:[];s.inbox=Array.isArray(s.inbox)?s.inbox:[];s.habits=Array.isArray(s.habits)?s.habits:[];s.projects=Array.isArray(s.projects)?s.projects:[];s.journal=Array.isArray(s.journal)?s.journal:[];
-  s.tasks.forEach(t=>{if(!t.place)t.place=(t.focus==='out'?'out':'home');if(!t.minutes)t.minutes=20});
+  // Keep legacy task fields intact for old backups, but no longer require time/place settings.
   s.habits.forEach(h=>{h.logs=h.logs&&typeof h.logs==='object'?h.logs:{}});
   s.projects.forEach(p=>{p.sessions=Array.isArray(p.sessions)?p.sessions:[]});
   return s;
