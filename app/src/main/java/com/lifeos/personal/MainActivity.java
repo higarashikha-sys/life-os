@@ -26,12 +26,14 @@ public class MainActivity extends Activity {
     private static final int REQ_EXPORT = 2001;
     private static final int REQ_IMPORT = 2002;
     private static final int REQ_EXPORT_AI = 2003;
+    private static final int REQ_EXPORT_MEALS = 2004;
     private static final String PREFS_NAME = "lifeos_state";
     private static final String PREFS_STATE_KEY = "state_json";
 
     private WebView webView;
     private String pendingExportJson;
     private String pendingAiExportText;
+    private String pendingMealsText;
 
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -117,6 +119,16 @@ public class MainActivity extends Activity {
             startActivityForResult(i, REQ_EXPORT_AI);
         }); }
 
+        @JavascriptInterface public void exportMeals(final String text) { runOnUiThread(() -> {
+            pendingMealsText = text;
+            Intent i = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE);
+            i.setType("text/plain");
+            String date = new SimpleDateFormat("yyyyMMdd_HHmm", Locale.US).format(new Date());
+            i.putExtra(Intent.EXTRA_TITLE, "LifeOS_meals_" + date + ".txt");
+            startActivityForResult(i, REQ_EXPORT_MEALS);
+        }); }
+
         @JavascriptInterface public void importBackup() { runOnUiThread(() -> {
             Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             i.addCategory(Intent.CATEGORY_OPENABLE);
@@ -152,6 +164,16 @@ public class MainActivity extends Activity {
                 Toast.makeText(this, "書き出しに失敗しました", Toast.LENGTH_LONG).show();
             }
             pendingAiExportText = null;
+        } else if (requestCode == REQ_EXPORT_MEALS) {
+            try (OutputStream out = getContentResolver().openOutputStream(uri)) {
+                if (out == null || pendingMealsText == null) throw new java.io.IOException("No output destination");
+                out.write(pendingMealsText.getBytes(StandardCharsets.UTF_8));
+                out.flush();
+                Toast.makeText(this, "食事記録を書き出しました", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(this, "食事記録の書き出しに失敗しました", Toast.LENGTH_LONG).show();
+            }
+            pendingMealsText = null;
         } else if (requestCode == REQ_IMPORT) {
             try (InputStream in = getContentResolver().openInputStream(uri)) {
                 if (in == null) return;
