@@ -10,8 +10,9 @@ android {
         applicationId = "com.lifeos.personal"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.1.0"
+        val ciRun = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+        versionCode = ciRun ?: 1
+        versionName = if (ciRun != null) "0.1." + ciRun else "0.1.0"
     }
 
     buildTypes {
