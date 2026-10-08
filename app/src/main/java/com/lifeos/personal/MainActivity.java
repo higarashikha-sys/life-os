@@ -53,7 +53,6 @@ public class MainActivity extends Activity {
             @Override public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
                 injectAsset(view, "native_state_patch.js", "履歴保存機能の読み込みに失敗しました");
-                injectAsset(view, "inbox_delete.js", "Inbox削除機能の読み込みに失敗しました");
                 injectAsset(view, "today_due_highlight.js", "期限強調表示の読み込みに失敗しました");
                 injectAsset(view, "habit_target_patch.js", "習慣頻度設定の読み込みに失敗しました");
                 injectAsset(view, "today_sort.js", "Today並び替え機能の読み込みに失敗しました");
