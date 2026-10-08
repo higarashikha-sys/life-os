@@ -3,6 +3,9 @@ on:
   workflow_dispatch:
   push:
     branches: [ main ]
+  schedule:
+    # Touch the cached signing key twice a week so GitHub does not evict it after 7 days of inactivity.
+    - cron: '17 3 * * 1,4'
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -34,8 +37,11 @@ jobs:
               -validity 10000 \
               -dname "CN=Android Debug,O=LifeOS,C=JP"
           fi
-      - run: gradle :app:assembleDebug
+      - name: Build debug APK
+        if: github.event_name != 'schedule'
+        run: gradle :app:assembleDebug
       - uses: actions/upload-artifact@v4
+        if: github.event_name != 'schedule'
         with:
           name: LifeOS-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
