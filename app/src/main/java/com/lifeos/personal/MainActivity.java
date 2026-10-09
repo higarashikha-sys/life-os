@@ -2,6 +2,8 @@ package com.lifeos.personal;
 
 import android.app.Activity;
 import android.app.backup.BackupManager;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -97,6 +99,16 @@ public class MainActivity extends Activity {
             statePrefs().edit().putString(PREFS_STATE_KEY, json).apply();
             signalBackupChanged();
         }
+
+        @JavascriptInterface public void copyText(final String label, final String text) { runOnUiThread(() -> {
+            ClipboardManager clipboard = (ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
+            if (clipboard == null) {
+                Toast.makeText(MainActivity.this, "クリップボードを利用できません", Toast.LENGTH_LONG).show();
+                return;
+            }
+            clipboard.setPrimaryClip(ClipData.newPlainText(label == null ? "Life OS" : label, text == null ? "" : text));
+            Toast.makeText(MainActivity.this, "クリップボードにコピーしました", Toast.LENGTH_SHORT).show();
+        }); }
 
         @JavascriptInterface public void exportBackup(final String json) { runOnUiThread(() -> {
             pendingExportJson = json;
